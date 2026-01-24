@@ -68,7 +68,6 @@ export function ArticlesMobile() {
 
   return (
     <div className='flex h-full flex-col overflow-hidden'>
-      {/* ① 筛选栏 */}
       <div className='sticky top-0 z-30 mb-2'>
         <FilterBar
           value={filter}

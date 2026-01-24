@@ -3,7 +3,7 @@ import * as z from 'zod'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Pencil, Trash2, Clock, Zap, Play } from 'lucide-react'
+import { Plus, Clock, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   addTask,
@@ -14,8 +14,7 @@ import {
   type Task,
   updateTask,
 } from '@/api/task.ts'
-import { cn } from '@/lib/utils.ts'
-import { Badge } from '@/components/ui/badge'
+import { useIsMobile } from '@/hooks/use-mobile.tsx'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -35,16 +34,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch.tsx'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea.tsx'
 import { ResponsiveModal } from '@/components/response-modal.tsx'
+import { TaskTableDesktop } from '@/features/tasks/components/task-table-desktop.tsx'
+import { TaskTableMobile } from '@/features/tasks/components/task-table-mobile.tsx'
 
 const taskSchema = z.object({
   task_name: z.string().min(2, '任务名称至少2个字符'),
@@ -68,8 +61,9 @@ export default function TaskManager() {
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const queryClient = useQueryClient()
+  const isMobile = useIsMobile()
 
-  const { data: tasks } = useQuery({
+  const { data: tasks, isLoading } = useQuery({
     queryKey: ['tasks'],
     queryFn: async () => {
       const res = await getTasks()
@@ -151,239 +145,168 @@ export default function TaskManager() {
   }
 
   return (
-    <div className='space-y-6'>
-      <div className='flex items-center justify-between rounded-2xl border p-4 shadow-sm md:p-6'>
-        <div className='space-y-1'>
-          <p className='flex items-center gap-1 text-xs text-muted-foreground md:text-sm'>
-            <Zap className='h-3 w-3 fill-amber-500 text-amber-500' />
-            当前活跃任务: {tasks?.filter(item=>item.enable).length}
-          </p>
-        </div>
-        <ResponsiveModal
-          title={editingTask ? '编辑任务' : '创建新任务'}
-          open={isFormOpen}
-          onOpenChange={setIsFormOpen}
-          trigger={
-            <Button
-              onClick={() => setEditingTask(null)}
-              className='rounded-full'
-            >
-              <Plus /> 新增任务
-            </Button>
-          }
-        >
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit((values) => {
-                saveTaskMutation.mutate(values)
-              })}
-              className='space-y-4'
-            >
-              <FormField
-                control={form.control}
-                name='task_name'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>任务名称</FormLabel>
-                    <FormControl>
-                      <Input placeholder='输入任务名称' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='task_func'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>执行函数</FormLabel>
-                    <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <SelectTrigger className='w-full'>
-                          <SelectValue placeholder='选择函数' />
-                        </SelectTrigger>
-                        <SelectContent className='w-full'>
-                          {taskFunctions?.map((f) => (
-                            <SelectItem key={f.func_name} value={f.func_name}>
-                              {f.func_label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='task_args'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>函数参数</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder='{"arg_name":"arg_value"}'
-                      ></Textarea>
-                    </FormControl>
-                    <FormDescription>
-                      <span>参数列表: {func_arg}</span>
-                    </FormDescription>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='task_cron'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cron 表达式</FormLabel>
-                    <FormControl>
-                      <div className='relative'>
-                        <Input {...field} />
-                        <Clock className='absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
-                      </div>
-                    </FormControl>
-                    <FormDescription>
-                      <span className='rounded bg-muted px-1.5 py-0.5 italic'>
-                        */5 * * * * (每5分)
-                      </span>
-                      <span className='rounded bg-muted px-1.5 py-0.5 italic'>
-                        0 0 * * * (每日)
-                      </span>
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='enable'
-                render={({ field }) => (
-                  <FormItem className='flex items-center justify-between'>
-                    <FormLabel>开启任务</FormLabel>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+    <div className='flex h-full flex-col overflow-hidden'>
+      <div className='sticky top-0 z-10 mb-2'>
+        <div className='flex items-center justify-between rounded-2xl border p-4 shadow-sm md:p-6'>
+          <div className='space-y-1'>
+            <p className='flex items-center gap-1 text-xs text-muted-foreground md:text-sm'>
+              <Zap className='h-3 w-3 fill-amber-500 text-amber-500' />
+              当前活跃任务: {tasks?.filter((item) => item.enable).length}
+            </p>
+          </div>
+          <ResponsiveModal
+            title={editingTask ? '编辑任务' : '创建新任务'}
+            open={isFormOpen}
+            onOpenChange={setIsFormOpen}
+            trigger={
               <Button
-                type='submit'
-                disabled={saveTaskMutation.isPending}
-                className='w-full'
+                onClick={() => setEditingTask(null)}
+                className='rounded-full'
               >
-                {saveTaskMutation.isPending ? '保存中...' : '保存配置'}
+                <Plus /> 新增任务
               </Button>
-            </form>
-          </Form>
-        </ResponsiveModal>
-      </div>
-      <div className='overflow-hidden rounded-2xl border shadow-sm'>
-        <Table>
-          {/* 1. 移动端隐藏表头 */}
-          <TableHeader className='hidden md:table-header-group'>
-            <TableRow>
-              <TableHead>任务名称</TableHead>
-              <TableHead>执行逻辑</TableHead>
-              <TableHead>Cron 周期</TableHead>
-              <TableHead className='text-right'>管理</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {tasks?.map((task) => (
-              <TableRow
-                key={task.id}
-                className='group flex flex-col border-b p-4 transition-colors md:table-row md:p-0'
+            }
+          >
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit((values) => {
+                  saveTaskMutation.mutate(values)
+                })}
+                className='space-y-4'
               >
-                <TableCell className='p-0 pb-3 md:table-cell md:py-4'>
-                  <div className='flex items-center gap-3 pl-2'>
-                    <div
-                      className={cn(
-                        'h-2 w-2 rounded-full',
-                        task.enable
-                          ? 'animate-pulse bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]'
-                          : 'bg-slate-400 shadow-none'
-                      )}
-                    />
-                    <span className='text-base font-bold md:font-semibold'>
-                      {task.task_name}
-                    </span>
-                  </div>
-                </TableCell>
-
-                <TableCell className='flex items-start justify-between px-0 py-2 md:table-cell md:py-4'>
-                  <span className='text-sm font-medium text-muted-foreground md:hidden'>
-                    执行逻辑
-                  </span>
-                  <div className='flex flex-col items-end gap-2 md:flex-row md:items-center'>
-                    <Badge variant='outline' className='font-mono'>
-                      {task.task_func}
-                    </Badge>
-                    <div className='flex items-center gap-2'>
-                      <span className='hidden text-xs text-muted-foreground md:inline'>
-                        →
-                      </span>
-                      <span className='max-w-[200px] truncate text-xs text-slate-600 md:max-w-none'>
-                        {task.task_args}
-                      </span>
-                    </div>
-                  </div>
-                </TableCell>
-
-                <TableCell className='flex items-center justify-between px-0 py-2 md:table-cell md:py-4'>
-                  <span className='text-sm font-medium text-muted-foreground md:hidden'>
-                    Cron 周期
-                  </span>
-                  <span className='font-mono text-sm text-muted-foreground'>
-                    {task.task_cron}
-                  </span>
-                </TableCell>
-
-                <TableCell className='flex justify-end px-0 pt-3 md:sticky md:right-0 md:table-cell md:pt-4'>
-                  <div className='flex w-full justify-end gap-1 border-t pt-3 md:w-auto md:border-none md:pt-0'>
-                    <Button
-                      variant='outline'
-                      size='icon'
-                      className='h-9 w-9 text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 md:h-8 md:w-8 md:border-none md:bg-transparent'
-                      onClick={() => handleRunTask(task.id)}
-                    >
-                      <Play className='h-4 w-4' />
-                    </Button>
-                    <Button
-                      variant='outline'
-                      size='icon'
-                      className='md:variant-ghost h-9 w-9 md:h-8 md:w-8'
-                      onClick={() => {
-                        setEditingTask(task)
-                        setIsFormOpen(true)
-                      }}
-                    >
-                      <Pencil className='h-4 w-4' />
-                    </Button>
-                    <Button
-                      variant='outline'
-                      size='icon'
-                      className='md:variant-ghost h-9 w-9 text-destructive md:h-8 md:w-8'
-                      onClick={() => handleDelete(task.id)}
-                    >
-                      <Trash2 className='h-4 w-4' />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                <FormField
+                  control={form.control}
+                  name='task_name'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>任务名称</FormLabel>
+                      <FormControl>
+                        <Input placeholder='输入任务名称' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='task_func'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>执行函数</FormLabel>
+                      <FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <SelectTrigger className='w-full'>
+                            <SelectValue placeholder='选择函数' />
+                          </SelectTrigger>
+                          <SelectContent className='w-full'>
+                            {taskFunctions?.map((f) => (
+                              <SelectItem key={f.func_name} value={f.func_name}>
+                                {f.func_label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='task_args'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>函数参数</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder='{"arg_name":"arg_value"}'
+                        ></Textarea>
+                      </FormControl>
+                      <FormDescription>
+                        <span>参数列表: {func_arg}</span>
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='task_cron'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cron 表达式</FormLabel>
+                      <FormControl>
+                        <div className='relative'>
+                          <Input {...field} />
+                          <Clock className='absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        <span className='rounded bg-muted px-1.5 py-0.5 italic'>
+                          */5 * * * * (每5分)
+                        </span>
+                        <span className='rounded bg-muted px-1.5 py-0.5 italic'>
+                          0 0 * * * (每日)
+                        </span>
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='enable'
+                  render={({ field }) => (
+                    <FormItem className='flex items-center justify-between'>
+                      <FormLabel>开启任务</FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type='submit'
+                  disabled={saveTaskMutation.isPending}
+                  className='w-full'
+                >
+                  {saveTaskMutation.isPending ? '保存中...' : '保存配置'}
+                </Button>
+              </form>
+            </Form>
+          </ResponsiveModal>
+        </div>
+      </div>
+      <div className='flex-1 overflow-auto rounded-lg border'>
+        {isMobile ? (
+          <TaskTableMobile
+            data={tasks}
+            isLoading={isLoading}
+            onRun={handleRunTask}
+            onDelete={handleDelete}
+            onEdit={(task) => {
+              setEditingTask(task)
+              setIsFormOpen(true)
+            }}
+          />
+        ) : (
+          <TaskTableDesktop
+            data={tasks}
+            isLoading={isLoading}
+            onRun={handleRunTask}
+            onDelete={handleDelete}
+            onEdit={(task) => {
+              setEditingTask(task)
+              setIsFormOpen(true)
+            }}
+          ></TaskTableDesktop>
+        )}
       </div>
     </div>
   )

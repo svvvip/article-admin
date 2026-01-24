@@ -3,7 +3,7 @@ import * as z from 'zod'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pencil, Plus, Regex, Trash2 } from 'lucide-react'
+import { Plus, Regex } from 'lucide-react'
 import { toast } from 'sonner'
 import { getCategories } from '@/api/article.ts'
 import { fetchDownloaderList } from '@/api/config.ts'
@@ -14,17 +14,7 @@ import {
   type Rule,
   updateRule,
 } from '@/api/rule.ts'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog.tsx'
+import { useIsMobile } from '@/hooks/use-mobile.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import {
   Form,
@@ -42,15 +32,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select.tsx'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table.tsx'
 import { ResponsiveModal } from '@/components/response-modal.tsx'
+import { RuleTableDesktop } from '@/features/settings/rule/rule-table-desktop.tsx'
+import { RuleTableMobile } from '@/features/settings/rule/rule-table-mobile.tsx'
 
 const formSchema = z.object({
   id: z.number(),
@@ -75,6 +59,7 @@ const defaultValues = {
 export default function RulesManager() {
   const [editRule, setEditRule] = useState<Rule | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const isMobile = useIsMobile()
   const queryClient = useQueryClient()
   const form = useForm<formValues>({
     resolver: zodResolver(formSchema),
@@ -296,91 +281,31 @@ export default function RulesManager() {
                 </FormItem>
               )}
             />
-            <Button type='submit'>提交</Button>
+            <Button type='submit' className="w-full">提交</Button>
           </form>
         </Form>
       </ResponsiveModal>
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>板块</TableHead>
-              <TableHead>分类</TableHead>
-              <TableHead>正则</TableHead>
-              <TableHead>下载器</TableHead>
-              <TableHead>保存路径</TableHead>
-              <TableHead>操作</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={9} className='text-center'>
-                  加载中...
-                </TableCell>
-              </TableRow>
-            ) : data?.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={9} className='text-center'>
-                  暂无数据
-                </TableCell>
-              </TableRow>
-            ) : (
-              data?.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.id}</TableCell>
-                  <TableCell>{item.section}</TableCell>
-                  <TableCell>{item.category}</TableCell>
-                  <TableCell>{item.regex}</TableCell>
-                  <TableCell>{item.downloader}</TableCell>
-                  <TableCell>{item.save_path}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant='outline'
-                      size='icon'
-                      className="mr-2"
-                      onClick={() => {
-                        setEditRule(item)
-                        setIsFormOpen(true)
-                      }}
-                    >
-                      <Pencil className='h-4 w-4' />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant='outline'
-                                size='icon'
-                                className='text-destructive'>
-                          <Trash2 className='h-4 w-4'/>
-                        </Button>
-                      </AlertDialogTrigger>
-
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>确定要删除吗？</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            此操作不可恢复，请谨慎操作。
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>取消</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(item.id)}
-                          >
-                            确认删除
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {isMobile ? (
+        <RuleTableMobile
+          data={data}
+          onEdit={(item) => {
+            setEditRule(item)
+            setIsFormOpen(true)
+          }}
+          onDelete={(id) => handleDelete(id)}
+          isLoading={isLoading}
+        />
+      ) : (
+        <RuleTableDesktop
+          data={data}
+          onEdit={(item) => {
+            setEditRule(item)
+            setIsFormOpen(true)
+          }}
+          onDelete={(id) => handleDelete(id)}
+          isLoading={isLoading}
+        />
+      )}
     </>
   )
 }

@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { FileQuestion, RefreshCw, Search } from 'lucide-react'
 import { getArticles, getCategories } from '@/api/article.ts'
 import { useSearch } from '@/context/search-provider.tsx'
 import { useDebounce } from '@/hooks/use-debounce.tsx'
-import { Button } from '@/components/ui/button.tsx'
 import { CommonPagination } from '@/components/pagination.tsx'
 import { ArticleCard } from '@/features/articles/components/article-card.tsx'
 import { FilterBar } from '@/features/articles/components/filter-bar.tsx'
+import { Loading } from '@/components/loading.tsx'
+import { EmptyState } from '@/components/empty.tsx'
 
 export function ArticlesDesktop() {
   const { keyword } = useSearch()
@@ -49,48 +49,12 @@ export function ArticlesDesktop() {
       </div>
 
       {/* ② 表格区域（滚动容器） */}
-      <div className='flex-1 overflow-auto'>
-        {isLoading && (
-          <div className='flex h-full items-center justify-center'>
-            <div className='flex flex-col items-center gap-3 text-muted-foreground'>
-              <div className='h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent' />
-              <p className='text-sm'>加载中...</p>
-            </div>
-          </div>
-        )}
-        {(!data?.items || data.items.length === 0) && (
-          <div className='flex h-full items-center justify-center p-8'>
-            <div className='flex max-w-md flex-col items-center gap-4 text-center'>
-              <div className='relative'>
-                <FileQuestion className='h-20 w-20 text-muted-foreground/20' />
-                <Search className='absolute -right-1 -bottom-1 h-8 w-8 text-muted-foreground/30' />
-              </div>
-
-              <div className='space-y-2'>
-                <h3 className='text-lg font-semibold text-foreground'>
-                  暂无数据
-                </h3>
-                <p className='text-sm text-muted-foreground'>
-                  没有找到符合条件的文章，试试调整筛选条件或搜索关键词
-                </p>
-              </div>
-
-              <Button
-                onClick={() => setFilter((prev) => ({ ...prev, keyword: '' }))}
-                variant='outline'
-                className='gap-2'
-              >
-                <RefreshCw className='h-4 w-4' />
-                重置筛选
-              </Button>
-            </div>
-          </div>
-        )}
-        <div className='grid gap-2'>
-          {data?.items.map((article) => (
-            <ArticleCard key={article.tid} article={article} />
-          ))}
-        </div>
+      <div className='flex-1 space-y-2 overflow-auto'>
+        {isLoading && <Loading />}
+        {data?.items.length === 0 && <EmptyState />}
+        {data?.items.map((article) => (
+          <ArticleCard key={article.tid} article={article} />
+        ))}
       </div>
 
       {/* ④ 分页 */}

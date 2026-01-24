@@ -311,7 +311,7 @@ export function DownloaderDialog({ articleId }: DownloaderDialogProps) {
               >
                 取消
               </Button>
-              <Button type='submit' disabled={submitMutation.isPending}>
+              <Button type='submit' disabled={submitMutation.isPending} className="w-full">
                 {submitMutation.isPending ? (
                   <>
                     <div className='mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent' />

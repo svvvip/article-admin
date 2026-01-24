@@ -59,7 +59,7 @@ export function NavUser({ user }: NavUserProps) {
                 onClick={() => setOpen(true)}
               >
                 <LogOut />
-                Sign out
+               登出
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

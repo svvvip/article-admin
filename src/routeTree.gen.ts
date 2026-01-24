@@ -27,6 +27,7 @@ import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedDownloadLogIndexRouteImport } from './routes/_authenticated/download-log/index'
 import { Route as AuthenticatedArticlesIndexRouteImport } from './routes/_authenticated/articles/index'
 import { Route as AuthenticatedTasksLogRouteImport } from './routes/_authenticated/tasks/log'
+import { Route as AuthenticatedSettingsSystemRouteImport } from './routes/_authenticated/settings/system'
 import { Route as AuthenticatedSettingsRuleRouteImport } from './routes/_authenticated/settings/rule'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsDownloaderRouteImport } from './routes/_authenticated/settings/downloader'
@@ -127,6 +128,12 @@ const AuthenticatedTasksLogRoute = AuthenticatedTasksLogRouteImport.update({
   path: '/tasks/log',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSettingsSystemRoute =
+  AuthenticatedSettingsSystemRouteImport.update({
+    id: '/system',
+    path: '/system',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
 const AuthenticatedSettingsRuleRoute =
   AuthenticatedSettingsRuleRouteImport.update({
     id: '/rule',
@@ -175,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/settings/downloader': typeof AuthenticatedSettingsDownloaderRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/rule': typeof AuthenticatedSettingsRuleRoute
+  '/settings/system': typeof AuthenticatedSettingsSystemRoute
   '/tasks/log': typeof AuthenticatedTasksLogRoute
   '/articles': typeof AuthenticatedArticlesIndexRoute
   '/download-log': typeof AuthenticatedDownloadLogIndexRoute
@@ -198,6 +206,7 @@ export interface FileRoutesByTo {
   '/settings/downloader': typeof AuthenticatedSettingsDownloaderRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/rule': typeof AuthenticatedSettingsRuleRoute
+  '/settings/system': typeof AuthenticatedSettingsSystemRoute
   '/tasks/log': typeof AuthenticatedTasksLogRoute
   '/articles': typeof AuthenticatedArticlesIndexRoute
   '/download-log': typeof AuthenticatedDownloadLogIndexRoute
@@ -224,6 +233,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/downloader': typeof AuthenticatedSettingsDownloaderRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/_authenticated/settings/rule': typeof AuthenticatedSettingsRuleRoute
+  '/_authenticated/settings/system': typeof AuthenticatedSettingsSystemRoute
   '/_authenticated/tasks/log': typeof AuthenticatedTasksLogRoute
   '/_authenticated/articles/': typeof AuthenticatedArticlesIndexRoute
   '/_authenticated/download-log/': typeof AuthenticatedDownloadLogIndexRoute
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/settings/downloader'
     | '/settings/notifications'
     | '/settings/rule'
+    | '/settings/system'
     | '/tasks/log'
     | '/articles'
     | '/download-log'
@@ -273,6 +284,7 @@ export interface FileRouteTypes {
     | '/settings/downloader'
     | '/settings/notifications'
     | '/settings/rule'
+    | '/settings/system'
     | '/tasks/log'
     | '/articles'
     | '/download-log'
@@ -298,6 +310,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/downloader'
     | '/_authenticated/settings/notifications'
     | '/_authenticated/settings/rule'
+    | '/_authenticated/settings/system'
     | '/_authenticated/tasks/log'
     | '/_authenticated/articles/'
     | '/_authenticated/download-log/'
@@ -447,6 +460,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTasksLogRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings/system': {
+      id: '/_authenticated/settings/system'
+      path: '/system'
+      fullPath: '/settings/system'
+      preLoaderRoute: typeof AuthenticatedSettingsSystemRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
     '/_authenticated/settings/rule': {
       id: '/_authenticated/settings/rule'
       path: '/rule'
@@ -490,6 +510,7 @@ interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsDownloaderRoute: typeof AuthenticatedSettingsDownloaderRoute
   AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
   AuthenticatedSettingsRuleRoute: typeof AuthenticatedSettingsRuleRoute
+  AuthenticatedSettingsSystemRoute: typeof AuthenticatedSettingsSystemRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
 
@@ -500,6 +521,7 @@ const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteCh
     AuthenticatedSettingsNotificationsRoute:
       AuthenticatedSettingsNotificationsRoute,
     AuthenticatedSettingsRuleRoute: AuthenticatedSettingsRuleRoute,
+    AuthenticatedSettingsSystemRoute: AuthenticatedSettingsSystemRoute,
     AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   }
 

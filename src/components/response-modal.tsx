@@ -34,12 +34,13 @@ export function ResponsiveModal({
   open,
   onOpenChange,
 }: ResponsiveModalProps) {
-  // 这里的 (min-width: 768px) 是常见的桌面端断点
   const isMobile = useIsMobile()
+
+
 
   if (!isMobile) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={onOpenChange} key="dialog">
         {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
         <DialogContent className='w-auto max-w-none sm:max-w-none min-w-md'>
           <DialogHeader>
@@ -53,7 +54,7 @@ export function ResponsiveModal({
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
+    <Drawer open={open} onOpenChange={onOpenChange} key="drawer">
       {trigger && <DrawerTrigger asChild>{trigger}</DrawerTrigger>}
       <DrawerContent className='px-4 py-4'>
         <DrawerHeader className='text-left'>

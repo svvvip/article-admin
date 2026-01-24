@@ -18,13 +18,11 @@ export function Tasks() {
         </div>
       </Header>
 
-      <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
+      <Main fixed>
         <div className='flex flex-wrap items-end justify-between gap-2'>
           <div>
             <h2 className='text-2xl font-bold tracking-tight'>任务调度管理</h2>
-            <p className='text-muted-foreground'>
-              配置并监控自动执行的定时任务
-            </p>
+            <p className='text-muted-foreground'>配置并监控自动执行的定时任务</p>
           </div>
         </div>
         <TaskManager/>

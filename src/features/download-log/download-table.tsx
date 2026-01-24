@@ -163,7 +163,7 @@ export function DownloadLogTable() {
         </Form>
       </div>
 
-      <div className='flex-1 overflow-y-auto rounded-lg border'>
+      <div className='flex-1 overflow-auto rounded-lg border'>
         <Table>
           <TableHeader>
             <TableRow>
