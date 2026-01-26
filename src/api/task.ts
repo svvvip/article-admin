@@ -60,7 +60,7 @@ export function deleteTask(task_id: number) {
 }
 
 export function runTask(task_id: number) {
-  return request<Task[]>({ url: `/tasks/run/${task_id}`, method: 'get' })
+  return request({ url: `/tasks/run/${task_id}`, method: 'get' })
 }
 
 export function pageTaskLog(filter: TaskLogFilter) {

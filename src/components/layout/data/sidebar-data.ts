@@ -7,6 +7,7 @@ import {
   ClipboardClock,
   AlarmClockCheck,
   BookCheck,
+  KeyRound,
 } from 'lucide-react'
 import { type SidebarData } from '../types'
 
@@ -59,6 +60,11 @@ export const sidebarData: SidebarData = {
           title: '设置',
           url: '/settings',
           icon: Settings,
+        },
+        {
+          title: '令牌',
+          url: '/tokens',
+          icon: KeyRound,
         },
         {
           title: '帮助中心',

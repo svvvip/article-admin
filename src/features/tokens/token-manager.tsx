@@ -1,0 +1,223 @@
+'use client'
+
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Trash2, Plus, Copy, Zap, HelpCircle } from 'lucide-react'
+import { addToken, deleteToken, listToken } from '@/api/token.ts';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ConfirmButton } from '@/components/confirm-button.tsx';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export default function TokenManager() {
+  const [open, setOpen] = useState(false)
+  const [newKey, setNewKey] = useState('')
+  const queryClient = useQueryClient()
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['tokens'],
+    queryFn: async () => {
+      const res = await listToken()
+      return res.data
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const handleCreate = async () => {
+    if (!newKey.trim()) return
+
+    const res = await addToken(newKey)
+    if (res.code === 0) {
+      setOpen(false)
+      queryClient.invalidateQueries({ queryKey: ['tokens'] })
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    const res = await deleteToken(id)
+    if (res.code === 0) {
+      queryClient.invalidateQueries({ queryKey: ['tokens'] })
+    }
+  }
+
+  return (
+    <div className='flex h-full flex-col overflow-hidden'>
+      <div className='sticky top-0 z-10 mb-2'>
+        <div className="flex items-center justify-between rounded-2xl border p-4 shadow-sm md:p-6">
+          <div className="space-y-1">
+            <p className="flex items-center gap-1 text-xs text-muted-foreground md:text-sm">
+              <Zap className="h-3 w-3 fill-amber-500 text-amber-500" />
+              当前令牌数量: {data?.length}
+            </p>
+
+            {/* ✅ 令牌使用方法 */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="flex items-center gap-1 text-xs text-primary hover:underline">
+                  <HelpCircle className="h-3 w-3" />
+                  令牌使用方法
+                </button>
+              </PopoverTrigger>
+
+              <PopoverContent className="w-80 text-sm">
+                <div className="space-y-2">
+                  <p className="font-medium">如何使用 API 令牌</p>
+
+                  <ol className="list-decimal space-y-1 pl-4 text-muted-foreground">
+                    <li>在请求 Header 中添加：</li>
+                  </ol>
+
+                  <pre className="whitespace-pre-wrap break-all">
+{`X-API-Key: YOUR_API_TOKEN`}
+          </pre>
+
+                  <p className="text-xs text-muted-foreground">
+                    示例（curl）：
+                  </p>
+
+                  <pre className="whitespace-pre-wrap break-all">
+{`curl -H "X-API-Key: YOUR_API_TOKEN" https://api.example.com/v1/resource`}
+          </pre>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <Button onClick={() => setOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" /> 新建令牌
+          </Button>
+        </div>
+
+      </div>
+      <div className='flex-1 overflow-auto border rounded-lg'>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>令牌标识</TableHead>
+              <TableHead>令牌</TableHead>
+              <TableHead>操作</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading && (
+              <TableRow>
+                <TableCell colSpan={9} className='text-center'>
+                  加载中...
+                </TableCell>
+              </TableRow>
+            )}
+            {data?.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={9} className='text-center'>
+                  暂无数据
+                </TableCell>
+              </TableRow>
+            )}
+            {data?.map((token) => (
+              <TableRow key={token.id}>
+                <TableCell>{token.token_key}</TableCell>
+                <TableCell className='font-mono text-sm'>
+                  {token.token_value}
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <Button
+                      size='sm'
+                      variant='default'
+                      onClick={() => {
+                        navigator.clipboard.writeText(token.token_value)
+                      }}
+                    >
+                      <Copy className='h-4 w-4' />
+                    </Button>
+                    <ConfirmButton
+                      variant='outline'
+                      className='text-destructive'
+                      title='删除令牌'
+                      description='删除后数据将无法恢复，是否确认？'
+                      triggerText={<Trash2 className='h-4 w-4' />}
+                      onConfirm={() => handleDelete(token.id)}
+                    />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>新建令牌</DialogTitle>
+          </DialogHeader>
+
+          <div className='space-y-2'>
+            <Input
+              placeholder='输入令牌标识'
+              value={newKey}
+              onChange={(e) => setNewKey(e.target.value)}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button variant='outline' onClick={() => setOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={handleCreate}>创建</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}

@@ -283,7 +283,7 @@ export default function TaskManager() {
           </ResponsiveModal>
         </div>
       </div>
-      <div className='flex-1 overflow-auto rounded-lg border'>
+      <div className='flex-1 overflow-auto'>
         {isMobile ? (
           <TaskTableMobile
             data={tasks}
