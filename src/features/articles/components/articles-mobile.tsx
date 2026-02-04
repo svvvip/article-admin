@@ -6,9 +6,13 @@ import { useSearch } from '@/context/search-provider.tsx'
 import { useDebounce } from '@/hooks/use-debounce.tsx'
 import { ArticleCard } from '@/features/articles/components/article-card.tsx'
 import { FilterBar } from '@/features/articles/components/filter-bar.tsx'
+import { ImagePreview } from '@/components/image-preview.tsx'
 
 export function ArticlesMobile() {
   const { keyword } = useSearch()
+  const [previewImages, setPreviewImages] = useState<string[]>([])
+  const [imgPreviewOpen, setImgPreviewOpen] = useState(false)
+  const [alt, setAlt] = useState('')
   const debouncedKeyword = useDebounce(keyword, 300)
   const [filter, setFilter] = useState({
     page: 1,
@@ -79,9 +83,29 @@ export function ArticlesMobile() {
       <div className='flex-1 overflow-auto'>
         <div className='grid gap-2'>
           {articles.map((article) => (
-            <ArticleCard key={article.tid} article={article} />
+            <ArticleCard
+              key={article.tid}
+              article={article}
+              onImgClick={() => {
+                setPreviewImages(
+                  (article.img_list ?? '').split(',').filter(Boolean)
+                )
+                setAlt(article.title)
+                setImgPreviewOpen(true)
+              }}
+            />
           ))}
         </div>
+        <ImagePreview
+          images={previewImages}
+          alt={alt}
+          open={imgPreviewOpen}
+          onClose={() => {
+            setImgPreviewOpen(false)
+            setAlt('')
+            setPreviewImages([])
+          }}
+        ></ImagePreview>
 
         <div ref={loadMoreRef} className='py-4 text-center'>
           {isFetchingNextPage && (

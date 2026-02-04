@@ -49,6 +49,10 @@ export function DownloadLogTable() {
     page_size: 20,
   })
 
+  const [previewImages, setPreviewImages] = useState<string[]>([])
+  const [imgPreviewOpen, setImgPreviewOpen] = useState(false)
+  const [alt, setAlt] = useState('')
+
   const { data, isLoading } = useQuery({
     queryKey: ['download-log', filter],
     queryFn: async () => {
@@ -204,15 +208,19 @@ export function DownloadLogTable() {
                   </TableCell>
                   <TableCell>{item.size}mb</TableCell>
                   <TableCell>
-                    {item.preview_images && (
-                      <ImagePreview images={item.preview_images.split(',')} alt={item.title} image_trigger={
+                    {item.img_list && (
                         <img
-                          src={item.preview_images.split(',')[0]}
+                          src={item.img_list.split(',')[0]}
                           alt=''
                           className='h-10 w-16 rounded object-cover'
+                          onClick={() => {
+                            setPreviewImages(
+                              (item.img_list ?? '').split(',').filter(Boolean)
+                            )
+                            setAlt(item.title)
+                            setImgPreviewOpen(true)
+                          }}
                         />
-                      }></ImagePreview>
-
                     )}
                   </TableCell>
                   <TableCell>{item.downloader}</TableCell>
@@ -226,7 +234,16 @@ export function DownloadLogTable() {
           </TableBody>
         </Table>
       </div>
-
+      <ImagePreview
+        images={previewImages}
+        alt={alt}
+        open={imgPreviewOpen}
+        onClose={() => {
+          setImgPreviewOpen(false)
+          setAlt('')
+          setPreviewImages([])
+        }}
+      ></ImagePreview>
       <div className='sticky bottom-0 z-10 mt-2'>
         <CommonPagination
           page={filter.page}

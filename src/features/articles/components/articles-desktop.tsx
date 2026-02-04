@@ -6,6 +6,7 @@ import { useSearch } from '@/context/search-provider.tsx'
 import { useDebounce } from '@/hooks/use-debounce.tsx'
 import { Progress } from '@/components/ui/progress.tsx'
 import { EmptyState } from '@/components/empty.tsx'
+import { ImagePreview } from '@/components/image-preview.tsx'
 import { Loading } from '@/components/loading.tsx'
 import { CommonPagination } from '@/components/pagination.tsx'
 import { ArticleCard } from '@/features/articles/components/article-card.tsx'
@@ -22,6 +23,9 @@ export function ArticlesDesktop() {
   })
   const [progress, setProgress] = useState(0)
   const [importing, setImporting] = useState(false)
+  const [previewImages, setPreviewImages] = useState<string[]>([])
+  const [imgPreviewOpen, setImgPreviewOpen] = useState(false)
+  const [alt, setAlt] = useState('')
 
   const { data, isLoading } = useQuery({
     queryKey: ['articles', filter, debouncedKeyword],
@@ -75,16 +79,35 @@ export function ArticlesDesktop() {
       </div>
 
       {/* ② 表格区域（滚动容器） */}
-      <div className='flex-1 space-y-2 overflow-auto '>
-
+      <div className='flex-1 space-y-2 overflow-auto'>
         {isLoading && <Loading />}
         {data?.items.length === 0 && <EmptyState />}
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <div className='grid grid-cols-1 gap-4 xl:grid-cols-2'>
           {data?.items.map((article) => (
-            <ArticleCard key={article.tid} article={article} />
+            <ArticleCard
+              key={article.tid}
+              article={article}
+              onImgClick={() => {
+                setPreviewImages(
+                  (article.img_list ?? '').split(',').filter(Boolean)
+                )
+                setAlt(article.title)
+                setImgPreviewOpen(true)
+              }}
+            />
           ))}
         </div>
       </div>
+      <ImagePreview
+        images={previewImages}
+        alt={alt}
+        open={imgPreviewOpen}
+        onClose={() => {
+          setImgPreviewOpen(false)
+          setAlt('')
+          setPreviewImages([])
+        }}
+      ></ImagePreview>
 
       {/* ④ 分页 */}
       <div className='sticky bottom-0 z-30 mt-2'>

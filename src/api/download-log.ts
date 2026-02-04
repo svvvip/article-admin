@@ -14,7 +14,7 @@ export interface DownloadLog {
   category: string
   title: string
   size: number
-  preview_images: string
+  img_list: string
   downloader: string
   save_path: string
   download_time: string

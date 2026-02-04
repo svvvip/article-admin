@@ -6,7 +6,7 @@ export interface Article {
   section: string
   publish_date: string
   magnet: string
-  preview_images: string
+  img_list: string
   category: string
   size: number
   in_stock: boolean

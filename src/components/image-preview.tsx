@@ -1,19 +1,19 @@
 import { useState } from 'react'
-import * as React from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import 'react-medium-image-zoom/dist/styles.css'
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch'
 import { Button } from '@/components/ui/button.tsx'
-import { ResponsiveModal } from '@/components/response-modal.tsx'
 
 export function ImagePreview({
   images,
   alt,
-  image_trigger,
+  open,
+  onClose,
 }: {
   images: string[]
   alt: string
-  image_trigger?: React.ReactNode
+  open: boolean
+  onClose: () => void
 }) {
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -24,47 +24,34 @@ export function ImagePreview({
   const prevImage = () => {
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
   }
-  const [open, setOpen] = useState(false)
+  if (!open) return null
 
   return (
-    <ResponsiveModal title='图片预览' trigger={image_trigger} disableSwipe={true}>
-      <div className='relative rounded-lg bg-black/95 p-4'>
-        <div onClick={() => setOpen(true)}>
+    <div title='图片预览' className='fixed inset-0 z-50 flex items-center justify-center bg-black/90'>
+      <Button
+        size='icon'
+        variant='ghost'
+        onClick={onClose}
+        className='absolute top-4 right-4 text-white hover:bg-white/10'
+      >
+        <X className='h-6 w-6' />
+      </Button>
+      <div className='relative rounded-lg bg-black/95 p-2'>
+        <div className="flex items-center justify-center">
           <TransformWrapper
             pinch={{ disabled: false }}
-            doubleClick={{ disabled: true }}>
+            doubleClick={{ disabled: true }}
+          >
             <TransformComponent>
               <img
                 src={images[currentIndex]}
                 alt={`${alt}-${currentIndex}`}
-                className='max-h-[80vh] max-w-[90vw] rounded-lg object-contain'
+                className='w-full h-full rounded-lg object-contain'
               />
             </TransformComponent>
           </TransformWrapper>
         </div>
 
-        {open && (
-          <div
-            className='bg-opacity-90 fixed inset-0 z-50 flex items-center justify-center bg-black'
-            onClick={() => setOpen(false)}
-          >
-            <TransformWrapper
-              pinch={{ disabled: false }}
-              doubleClick={{ disabled: true }}
-              wheel={{ disabled: false }}
-            >
-              <TransformComponent>
-                <img
-                  src={images[currentIndex]}
-                  alt={`${alt}-${currentIndex}`}
-                  className='max-h-full max-w-full object-contain'
-                />
-              </TransformComponent>
-            </TransformWrapper>
-          </div>
-        )}
-
-        {/* 图片导航 */}
         {images.length > 1 && (
           <>
             <Button
@@ -84,17 +71,12 @@ export function ImagePreview({
             >
               <ChevronRight className='h-6 w-6' />
             </Button>
-
-            {/* 图片计数 */}
-            <div className='absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-sm text-white backdrop-blur-sm'>
-              {currentIndex + 1} / {images.length}
-            </div>
           </>
         )}
 
         {/* 缩略图 */}
         {images.length > 1 && (
-          <div className='scrollbar-thin mt-4 flex gap-2 overflow-x-auto pb-2'>
+          <div className='mt-4 flex gap-2 overflow-x-auto pb-2 max-w-[99vw]'>
             {images.map((img, index) => (
               <button
                 key={index}
@@ -115,6 +97,6 @@ export function ImagePreview({
           </div>
         )}
       </div>
-    </ResponsiveModal>
+    </div>
   )
 }
